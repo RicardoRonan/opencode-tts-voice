@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "command": {
+    "voice": {
+      "description": "Control voice reading (TTS). Usage: /voice on|off|toggle|status|voice <name>|rate <x%>|last [n]|pause|resume|seek <s>|stop|test",
+      "agent": "build",
+      "template": "Use the voice tool to handle this request. The user typed: $ARGUMENTS"
+    }
+  }
+}

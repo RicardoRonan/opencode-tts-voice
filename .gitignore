@@ -1,0 +1,11 @@
+# Machine-local runtime state — never commit
+voice-state.json
+voice-control.json
+
+# Node
+node_modules/
+
+# Temp / logs
+*.log
+*.mp3
+*.ctrl.json
