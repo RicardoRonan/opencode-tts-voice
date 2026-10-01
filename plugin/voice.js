@@ -260,6 +260,55 @@ async function getLastAssistantText(client, sessionID, back = 1) {
   return null;
 }
 
+// Condense a long response into a short spoken summary using a throwaway
+// opencode session, so the TTS reads a natural summary instead of raw text.
+// Falls back to a truncated preview if the model call fails or times out.
+async function summarizeForSpeech(client, sessionID, text, directory) {
+  const trimmed = text.trim();
+  if (trimmed.length <= 500) return trimmed;
+  let tempSessionID = null;
+  try {
+    const created = await client.session.create({
+      query: directory ? { directory } : undefined
+    });
+    tempSessionID = created?.data?.id ?? created?.id;
+    if (!tempSessionID) throw new Error("no session id");
+    const system =
+      "You are a concise spoken-language summarizer. Summarize the user's message into 2-3 short sentences of natural conversational prose. Speak as if narrating to a colleague. Never use markdown, bullet points, code, headings, or the word 'summary'. Output only the spoken text, no preamble.";
+    const result = await client.session.prompt({
+      path: { id: tempSessionID },
+      body: {
+        system,
+        parts: [{ type: "text", text: trimmed }],
+        tools: {}
+      }
+    });
+    const info = result?.data ?? result;
+    const partsRes = await client.session.messages({ path: { id: tempSessionID } });
+    const messages = partsRes?.data ?? partsRes;
+    const last = Array.isArray(messages) ? messages[messages.length - 1] : null;
+    const parts = last?.parts ?? [];
+    const spoken = parts
+      .filter((p) => p.type === "text" && !p.synthetic)
+      .map((p) => p.text)
+      .join(" ")
+      .trim();
+    if (spoken && spoken.length > 20) return spoken;
+    return trimmed.slice(0, 500);
+  } catch (err) {
+    console.error("voice: summarize failed, using preview:", err.message);
+    return trimmed.slice(0, 500);
+  } finally {
+    if (tempSessionID) {
+      try {
+        await client.session.delete({ path: { id: tempSessionID } });
+      } catch (err2) {
+        console.error("voice: failed to delete temp session:", err2.message);
+      }
+    }
+  }
+}
+
 const VoicePlugin = async ({ client, $ }) => {
   let currentSessionID = null;
 
@@ -272,7 +321,7 @@ const VoicePlugin = async ({ client, $ }) => {
         .describe("Action to perform"),
       value: tool.schema.string().optional().describe("Voice name, rate string, seek seconds, or text to speak for test")
     },
-    execute: async ({ action, value }, { sessionID }) => {
+    execute: async ({ action, value }, { sessionID, directory }) => {
       const state = loadState();
       switch (action) {
         case "on":
@@ -307,8 +356,19 @@ const VoicePlugin = async ({ client, $ }) => {
           const back = Math.max(1, parseInt(value ?? "1", 10) || 1);
           const text = await getLastAssistantText(client, sessionID, back);
           if (!text) return { output: "No assistant response found to read." };
-          await speak($, text, state);
-          return { output: `Reading response ${back === 1 ? "" : `(${back} back) `}aloud with ${state.voice}.` };
+          const preview = normalizeForSpeech(text).slice(0, 120);
+          const summaryPromise = (async () => {
+            try {
+              const toSpeak = await summarizeForSpeech(client, sessionID, text, directory);
+              await speak($, toSpeak, state);
+            } catch (err) {
+              console.error("voice: background speak failed:", err.message);
+            }
+          })();
+          void summaryPromise;
+          return {
+            output: `Reading response ${back === 1 ? "" : `(${back} back) `}aloud with ${state.voice}. ${text.length > 500 ? "Summarizing long response..." : ""}`
+          };
         }
         case "pause":
           if (activeControl) {
@@ -360,7 +420,13 @@ const VoicePlugin = async ({ client, $ }) => {
         const state = loadState();
         if (!state.enabled) return;
         const text = await getLastAssistantText(client, event.properties.sessionID);
-        if (text) await speak($, text, state);
+        if (!text) return;
+        if (text.length > 500) {
+          const toSpeak = await summarizeForSpeech(client, event.properties.sessionID, text, event.properties?.info?.path?.cwd);
+          if (toSpeak) await speak($, toSpeak, state);
+        } else {
+          await speak($, text, state);
+        }
       }
     },
     tool: { voice: voiceTool }

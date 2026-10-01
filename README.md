@@ -7,6 +7,8 @@ Built and maintained by **TheDevRicardo** -> [thedevricardo.co.za](https://thede
 ## Features
 
 - **Natural spoken output** -> responses are normalized for speech before synthesis: camelCase identifiers are split, tech acronyms are expanded (`JSON → "jay son"`, `API → "A P I"`), symbols are phrased (`-> → "to"`, `% → "percent"`), and markdown is stripped, so it sounds read aloud rather than read off code.
+- **Long-response summarization** -> responses over 500 characters are condensed by the model into 2-3 short conversational sentences before being spoken, so long answers stay quick and natural instead of becoming rambling audio.
+- **Non-blocking reading** -> `/voice last` returns instantly with a status message while synthesis and playback run in the background, so the TUI stays responsive.
 - **On-demand reading** -> read the most recent response (or the n-th response back) without enabling auto-read.
 - **Optional auto-read** -> toggle to speak every response when the session goes idle.
 - **Full playback control** -> pause, resume, seek, and stop from inside opencode via slash commands.
@@ -85,10 +87,13 @@ List all voices: `edge-tts --list-voices`
 ## How it works
 
 1. On `session.idle` (or `/voice last`), the plugin fetches the latest assistant message.
-2. The text is **normalized for speech** (`normalizeForSpeech`) so it sounds natural when spoken.
-3. `edge-tts` synthesizes the audio locally to a temp MP3.
-4. A detached Windows MediaPlayer process plays the MP3 while polling a JSON control file every 150 ms.
-5. Slash commands (`pause`, `resume`, `seek`, `stop`) write to that control file, giving you live playback control from the prompt.
+2. Responses over 500 characters are **summarized** into 2-3 short sentences via a throwaway opencode session (deleted afterwards, so it never appears in your chat history).
+3. The text is **normalized for speech** (`normalizeForSpeech`) so it sounds natural when spoken.
+4. `edge-tts` synthesizes the audio locally to a temp MP3.
+5. A detached Windows MediaPlayer process plays the MP3 while polling a JSON control file every 150 ms.
+6. Slash commands (`pause`, `resume`, `seek`, `stop`) write to that control file, giving you live playback control from the prompt.
+
+`/voice last` returns immediately (non-blocking) and speaks in the background; `session.idle` auto-reads inline.
 
 State (enabled, voice, rate) persists in `voice-state.json` next to the plugin.
 
