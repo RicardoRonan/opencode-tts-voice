@@ -27,10 +27,10 @@ Built and maintained by **TheDevRicardo** -> [thedevricardo.co.za](https://thede
 
 ## Install
 
-1. Copy `plugin/voice.js` into your opencode plugin directory:
+1. Copy `plugin/voice.js` into your opencode plugins directory (global plugins auto-load from this folder at startup):
 
    ```
-   ~/.config/opencode/plugin/voice.js
+   ~/.config/opencode/plugins/voice.js
    ```
 
 2. Add the `/voice` command to `~/.config/opencode/opencode.jsonc` (see `opencode.jsonc.example`):
@@ -42,7 +42,7 @@ Built and maintained by **TheDevRicardo** -> [thedevricardo.co.za](https://thede
        "voice": {
          "description": "Control voice reading (TTS). Usage: /voice on|off|toggle|status|voice <name>|rate <x%>|last [n]|pause|resume|seek <s>|stop|test",
          "agent": "build",
-         "template": "Use the voice tool to handle this request. The user typed: $ARGUMENTS"
+         "template": "Call the voice tool to handle this request. The user typed: $ARGUMENTS. You MUST invoke the voice tool with the appropriate action now - do not describe it, do not summarize what it would do. Then report the tool's result in one short line."
        }
      }
    }

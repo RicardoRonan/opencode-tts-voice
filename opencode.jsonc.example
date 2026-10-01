@@ -4,7 +4,7 @@
     "voice": {
       "description": "Control voice reading (TTS). Usage: /voice on|off|toggle|status|voice <name>|rate <x%>|last [n]|pause|resume|seek <s>|stop|test",
       "agent": "build",
-      "template": "Use the voice tool to handle this request. The user typed: $ARGUMENTS"
+      "template": "Call the voice tool to handle this request. The user typed: $ARGUMENTS. You MUST invoke the voice tool with the appropriate action now - do not describe it, do not summarize what it would do. Then report the tool's result in one short line."
     }
   }
 }
