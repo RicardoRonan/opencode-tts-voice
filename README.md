@@ -1,25 +1,29 @@
 # opencode-tts-voice
 
-A text-to-speech plugin for [opencode](https://opencode.ai) that reads assistant responses aloud with a natural Microsoft neural voice — and lets you pause, seek, resume, and stop playback from inside the TUI.
+A text-to-speech plugin for [opencode](https://opencode.ai) that reads assistant responses aloud with a natural Microsoft neural voice -> and lets you pause, seek, resume, and stop playback from inside the TUI.
 
-Built and maintained by **TheDevRicardo** — [thedevricardo.co.za](https://thedevricardo.co.za)
+Built and maintained by **TheDevRicardo** -> [thedevricardo.co.za](https://thedevricardo.co.za)
 
 ## Features
 
-- **Natural spoken output** — responses are normalized for speech before synthesis: camelCase identifiers are split, tech acronyms are expanded (`JSON → "jay son"`, `API → "A P I"`), symbols are phrased (`-> → "to"`, `% → "percent"`), and markdown is stripped, so it sounds read aloud rather than read off code.
-- **On-demand reading** — read the most recent response (or the n-th response back) without enabling auto-read.
-- **Optional auto-read** — toggle to speak every response when the session goes idle.
-- **Full playback control** — pause, resume, seek, and stop from inside opencode via slash commands.
-- **Voice + rate selection** — switch between 100+ Microsoft Edge neural voices and adjust speaking rate.
-- **Offline fallback** — if `edge-tts` is unavailable, falls back to Windows built-in SAPI speech.
-- **Zero cloud API keys** — uses Microsoft's free Edge TTS neural voices.
+- **Natural spoken output** -> responses are normalized for speech before synthesis: camelCase identifiers are split, tech acronyms are expanded (`JSON → "jay son"`, `API → "A P I"`), symbols are phrased (`-> → "to"`, `% → "percent"`), and markdown is stripped, so it sounds read aloud rather than read off code.
+- **On-demand reading** -> read the most recent response (or the n-th response back) without enabling auto-read.
+- **Optional auto-read** -> toggle to speak every response when the session goes idle.
+- **Full playback control** -> pause, resume, seek, and stop from inside opencode via slash commands.
+- **Voice + rate selection** -> switch between 100+ Microsoft Edge neural voices and adjust speaking rate.
+- **Offline fallback** -> if `edge-tts` is unavailable, falls back to Windows built-in SAPI speech.
+- **Zero cloud API keys** -> uses Microsoft's free Edge TTS neural voices.
 
 ## Requirements
 
-- **Windows** (the playback controller uses Windows MediaPlayer)
-- **Python 3** with `edge-tts`: `pip install edge-tts`
-- [opencode](https://opencode.ai) (latest)
-- Optional: `ffmpeg`/`ffplay` for advanced audio tooling (not required for playback)
+- **OS** -> Windows 10 or 11 (the playback controller uses the built-in Windows MediaPlayer runtime, `PresentationCore`)
+- **[opencode](https://opencode.ai)** (latest, so plugin tool registration is supported)
+- **Python 3** (3.9+)
+- **edge-tts** -> `pip install edge-tts`
+  - Requires an internet connection to reach Microsoft's neural voice service (needed only at synthesis time)
+  - If the `edge-tts` CLI is not on your `PATH`, the plugin calls it as `python -m edge_tts`, so a working `python` on `PATH` is enough
+- **No API keys** -> no cloud account, token, or subscription required
+- Optional: `ffmpeg`/`ffplay` for other audio tooling (not required for playback)
 
 ## Install
 
